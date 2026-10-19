@@ -1,0 +1,17 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Python (scripts de geração em tools/)
+__pycache__/
+*.pyc
+
+# Node (o validador não tem dependências, mas nunca se sabe)
+node_modules/
+package-lock.json

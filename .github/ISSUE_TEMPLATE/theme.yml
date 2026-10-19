@@ -1,0 +1,32 @@
+---
+name: Proposta de tema
+about: Publique um tema novo na Biblioteca Online
+title: 'tema: Nome do Tema'
+labels: tema
+---
+
+## Tema
+
+- **Nome:**
+- **Autor (GitHub):**
+- **Licença:**
+- **Slug** (minúsculas, hífen):
+
+## Descrição
+
+<!-- Uma ou duas frases. Aparece no card do app. -->
+
+## Cursores
+
+| Arquivo | Papel do Windows |
+| :--- | :--- |
+| `normal.ani` | Arrow |
+| `link.ani` | Hand |
+|  |  |
+
+## Checklist
+
+- [ ] `node tools/validate.mjs` passa
+- [ ] Previews em 640×360
+- [ ] Cursores com alpha
+- [ ] Tema adicionado ao `registry.json`

@@ -1,0 +1,37 @@
+name: validar catálogo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'themes/**'
+      - 'registry.json'
+      - 'tools/validate.mjs'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - 'themes/**'
+      - 'registry.json'
+      - 'tools/validate.mjs'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  formato:
+    name: Formato do catálogo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validar registry, metadados e cursores
+        run: node tools/validate.mjs
+
+      - name: Conferir a tabela de temas do README
+        run: node tools/readme.mjs --check

@@ -1,0 +1,25 @@
+---
+name: Dúvida ou problema no catálogo
+about: Algo não carregou, o formato está confuso, uma validação falhou
+title: ''
+labels: ajuda
+---
+
+## O que aconteceu
+
+<!-- O que você tentou fazer e o que aconteceu no lugar. -->
+
+## Onde
+
+<!-- Arquivo ou tema, se for sobre um deles. -->
+
+## Validação
+
+```
+cole aqui a saída de: node tools/validate.mjs
+```
+
+## Ambiente
+
+- Sistema:
+- Node (se rodou a validação):

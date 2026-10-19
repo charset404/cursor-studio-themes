@@ -1,0 +1,16 @@
+{
+  "slug": "example-aurora",
+  "name": "Aurora",
+  "author": "Cursor Studio",
+  "description": "Tema de exemplo que documenta o formato esperado. Copie esta pasta para criar um tema novo.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "tags": ["exemplo", "template"],
+  "preview": "preview.png",
+  "accent": "#7c9cff",
+  "cursors": [
+    { "file": "normal.cur", "role": "Arrow" },
+    { "file": "link.cur", "role": "Hand" },
+    { "file": "busy.cur", "role": "Wait" }
+  ]
+}
