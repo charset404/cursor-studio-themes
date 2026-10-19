@@ -10,9 +10,9 @@
 [![Themes](https://img.shields.io/badge/temas-1-7c9cff?style=flat-square)](#temas-disponíveis)
 [![PRs Welcome](https://img.shields.io/badge/PRs-bem--vindos-8b5cf6?style=flat-square)](CONTRIBUTING.md)
 [![Format](https://img.shields.io/badge/formato-validado-22c55e?style=flat-square)](docs/FORMATO.md)
-[![App](https://img.shields.io/badge/app-Cursor%20Studio-18181b?style=flat-square)](https://github.com/TalesRamosDev/cursor-studio)
+[![App](https://img.shields.io/badge/app-Cursor%20Studio-18181b?style=flat-square)](https://github.com/charset404/cursor-studio)
 
-A Biblioteca Online é o catálogo oficial de temas do **[Cursor Studio](https://github.com/TalesRamosDev/cursor-studio)**.
+A Biblioteca Online é o catálogo oficial de temas do **[Cursor Studio](https://github.com/charset404/cursor-studio)**.
 Cada tema é uma pasta com cursores `.ani` / `.cur` do Windows, pronta para ser aplicada
 em um clique — sem instalador, sem serviço em segundo plano.
 
@@ -122,15 +122,15 @@ tela que aquele encaixe é aproximado, em vez de descartar o arquivo em silênci
 
 | Recurso | Onde |
 | :--- | :--- |
-| Motor de cliques com efeitos `.bgra` | [cursor-studio](https://github.com/TalesRamosDev/cursor-studio) |
-| Temas locais e packs | [cursor-studio](https://github.com/TalesRamosDev/cursor-studio) |
+| Motor de cliques com efeitos `.bgra` | [cursor-studio](https://github.com/charset404/cursor-studio) |
+| Temas locais e packs | [cursor-studio](https://github.com/charset404/cursor-studio) |
 | Catálogo da comunidade | este repositório |
 
 ---
 
 <div align="center">
 
-**[Contribuir](CONTRIBUTING.md)** · **[Formato](docs/FORMATO.md)** · **[App](https://github.com/TalesRamosDev/cursor-studio)**
+**[Contribuir](CONTRIBUTING.md)** · **[Formato](docs/FORMATO.md)** · **[App](https://github.com/charset404/cursor-studio)**
 
 <sub>Feito para quem passa o dia inteiro na mesma seta.<br />
 Licença [MIT](LICENSE) · os temas mantêm a licença de seus autores.</sub>

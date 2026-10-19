@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/TalesRamosDev/cursor-studio-themes/main/themes/schema.json",
+  "$id": "https://raw.githubusercontent.com/charset404/cursor-studio-themes/main/themes/schema.json",
   "title": "Theme metadata",
   "description": "Metadata for one Cursor Studio theme, stored as themes/<slug>/theme.json.",
   "type": "object",

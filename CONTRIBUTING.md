@@ -140,6 +140,6 @@ quando não está — por isso a versão vem antes de qualquer outra coisa.
 
 ## Dúvidas
 
-Abra uma [issue](https://github.com/TalesRamosDev/cursor-studio-themes/issues/new/choose)
+Abra uma [issue](https://github.com/charset404/cursor-studio-themes/issues/new/choose)
 usando o template de "Dúvida" ou o de "Proposta de tema". Para problemas no app em
-si, o lugar é o [repositório do Cursor Studio](https://github.com/TalesRamosDev/cursor-studio).
+si, o lugar é o [repositório do Cursor Studio](https://github.com/charset404/cursor-studio).

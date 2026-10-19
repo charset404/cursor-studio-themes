@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "updatedAt": "2026-10-12T00:00:00Z",
-  "repository": "TalesRamosDev/cursor-studio-themes",
+  "repository": "charset404/cursor-studio-themes",
   "branch": "main",
-  "rawBase": "https://raw.githubusercontent.com/TalesRamosDev/cursor-studio-themes/main",
+  "rawBase": "https://raw.githubusercontent.com/charset404/cursor-studio-themes/main",
   "themes": [
     {
       "slug": "example-aurora",
