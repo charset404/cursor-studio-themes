@@ -47,8 +47,22 @@ O contrato completo está em [`schema.json`](../themes/schema.json). O mínimo:
 | `license` | Identificador SPDX (`MIT`, `CC-BY-4.0`, `CC-BY-SA-4.0`…). |
 | `tags` | Até 6, cada uma com até 20 caracteres. |
 | `accent` | Cor `#rrggbb` usada no detalhe do cartão. |
+| `category` | Id de uma categoria de `categories.json`. Opcional; ausente ou desconhecido mostra o tema em "Outros". |
 | `preview` | `preview.png`, 640×360, até 300 KB. |
 | `cursors` | Pelo menos 1 par `file` + `role`, com `file` terminando em `.ani` ou `.cur`. |
+
+## Categorias
+
+A lista de categorias é fechada e vem de [`categories.json`](../categories.json), na
+raiz do repositório. Cada entrada tem `id`, `label`, `accent`, `cover` e
+`description`, e a imagem fica em `categories/<id>.jpg` (640×360, até 120 KB).
+
+- O tema escolhe uma categoria existente pelo `id`.
+- Categoria nova **não** entra por pull request: exige imagem e card, feitos pelo
+  mantenedor do catálogo.
+- `id` não muda depois de publicado — os temas apontam para ele.
+- Tema com `category` ausente ou com id que não existe é publicado em "Outros";
+  a validação recusa o id desconhecido antes disso.
 
 ## Os 17 papéis do Windows
 

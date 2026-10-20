@@ -143,3 +143,10 @@ quando não está — por isso a versão vem antes de qualquer outra coisa.
 Abra uma [issue](https://github.com/charset404/cursor-studio-themes/issues/new/choose)
 usando o template de "Dúvida" ou o de "Proposta de tema". Para problemas no app em
 si, o lugar é o [repositório do Cursor Studio](https://github.com/charset404/cursor-studio).
+## Categoria
+
+Todo tema pode declarar `"category": "<id>"` no `theme.json`, usando um id que já
+exista em [`categories.json`](../categories.json). Categoria nova não é aceita por
+pull request: a criação passa pelo mantenedor, que produz a imagem e o card. Tema
+sem categoria, ou com categoria inexistente, é publicado em "Outros" — e a
+validação do CI recusa o id desconhecido.
