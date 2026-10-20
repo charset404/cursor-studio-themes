@@ -62,6 +62,7 @@ Edite `themes/meu-tema/theme.json`:
   "license": "MIT",
   "tags": ["escuro", "minimalista"],
   "accent": "#7c9cff",
+  "size": 32,
   "preview": "preview.png",
   "cursors": [
     { "file": "normal.ani", "role": "Arrow" },
@@ -70,13 +71,18 @@ Edite `themes/meu-tema/theme.json`:
 }
 ```
 
+O `size` é o **maior lado do maior cursor**, em pixels (32, 64, 96 ou 128). Ele
+precisa bater com os arquivos: a validação mede e recusa se estiver diferente.
+O teto da Comunidade é **128×128**; a importação local do app vai além, mas o
+catálogo não.
+
 Troque também `themes/meu-tema/preview.png` por uma imagem sua: **640×360**, até
 300 KB. É o que a pessoa vê antes de baixar.
 
 ### 5. Adicione ao índice
 
 Em `registry.json`, inclua o tema na lista `themes` (mesmos dados do `theme.json`,
-com `slug` igual ao da pasta):
+com `slug` igual ao da pasta e o mesmo `size`):
 
 ```json
 {
@@ -88,6 +94,7 @@ com `slug` igual ao da pasta):
   "license": "MIT",
   "tags": ["escuro", "minimalista"],
   "accent": "#7c9cff",
+  "size": 32,
   "preview": "themes/meu-tema/preview.png",
   "cursors": [
     { "file": "cursors/normal.ani", "role": "Arrow" },
@@ -126,6 +133,8 @@ lista exatamente o que a revisão vai olhar.
 - [ ] Os papéis fazem sentido (a seta é `Arrow`, a mão é `Hand`…)
 - [ ] A licença é compatível e está declarada
 - [ ] O tema está no `registry.json` e o `name` bate nos dois arquivos
+- [ ] O `size` bate nos dois JSONs **e** com o maior cursor (até 128×128)
+- [ ] Nenhum `.ani` passa de 60 quadros; nenhum arquivo passa de 4 MB e o tema de 32 MB
 - [ ] `version` é `1.0.0` (ou maior, se for atualização)
 
 ## Atualizando um tema já publicado

@@ -47,6 +47,23 @@ flowchart LR
 > `theme.json` descrevendo o papel de cada arquivo. O app copia os cursores para
 > a pasta de temas do usuário e aplica — nada é executado.
 
+### Regras da Comunidade
+
+| Regra | Teto |
+| :--- | :--- |
+| Formato | `.ani` e `.cur` (conteúdo validado, não só a extensão) |
+| Resolução | **128×128** |
+| Quadros por `.ani` | **60** |
+| Tamanho por arquivo | **4 MB** |
+| Tamanho por tema | **32 MB** |
+| Preview | 640×360, até 300 KB |
+
+O `size` (maior lado do maior cursor, em px) é obrigatório e precisa bater com os
+arquivos. A classificação mostrada pelo app depende do destino: **128×128 é
+"Máximo" na Comunidade e apenas "Pesado" na importação local**, que vai até
+256×256. As réguas nunca são as mesmas — detalhes em
+[docs/FORMATO.md](docs/FORMATO.md#tamanho-e-classificação).
+
 ---
 
 ## Baixar um tema
@@ -75,13 +92,13 @@ e o Cursor Studio passa a listá-los na Biblioteca.
 <!-- A tabela é gerada pelo workflow: não edite à mão. -->
 <!-- THEMES:START -->
 
-| Tema | Autor | Cursores | Licença | Prévia |
-| :--- | :--- | :---: | :---: | :---: |
-| **Aurora** | Cursor Studio | 3 | MIT | [ver](themes/example-aurora/preview.png) |
+| Tema | Autor | Cursores | Tamanho | Licença | Prévia |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **Aurora** | Cursor Studio | 3 | 32×32 | MIT | [ver](themes/example-aurora/preview.png) |
 
 <!-- THEMES:END -->
 
-<p align="center"><sub>O tema <strong>Auroraa</strong> é o exemplo oficial do formato — sirva-se dele como ponto de partida.</sub></p>
+<p align="center"><sub>O tema <strong>Aurora</strong> é o exemplo oficial do formato — sirva-se dele como ponto de partida.</sub></p>
 
 ---
 
@@ -95,7 +112,7 @@ git clone https://github.com/<voce>/cursor-studio-themes
 cd cursor-studio-themes
 
 # 2. Crie a pasta do tema a partir do exemplo
-cp -r themes/example-Auroraa themes/meu-tema
+cp -r themes/example-aurora themes/meu-tema
 
 # 3. Ajuste os metadados e coloque seus cursores em themes/meu-tema/cursors/
 
@@ -136,3 +153,4 @@ tela que aquele encaixe é aproximado, em vez de descartar o arquivo em silênci
 Licença [MIT](LICENSE) · os temas mantêm a licença de seus autores.</sub>
 
 </div>
+

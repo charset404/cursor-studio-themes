@@ -24,9 +24,14 @@ const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
 const ACCENT = /^#[0-9a-fA-F]{6}$/;
 const CURSOR_EXT = /\.(ani|cur)$/i;
-const MAX_FILE_BYTES = 512 * 1024;
-const MAX_THEME_BYTES = 4 * 1024 * 1024;
+// Limites da Comunidade. A importação local do app tem outros (maiores) —
+// nunca reutilize estes números para ela.
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
+const MAX_THEME_BYTES = 32 * 1024 * 1024;
 const MAX_PREVIEW_BYTES = 300 * 1024;
+const MAX_DIMENSION = 128;
+const MAX_FRAMES = 60;
+const MAX_ICONS = 64;
 
 /** Extensões que podem existir dentro de uma pasta de tema. */
 const ALLOWED_EXT = new Set(['.ani', '.cur', '.json', '.png']);
@@ -53,6 +58,190 @@ function checkString(value, where, field, { min = 1, max = Infinity } = {}) {
     fail(where, `"${field}" precisa ter entre ${min} e ${max} caracteres (tem ${trimmed.length})`);
   }
   return trimmed;
+}
+
+// ── Conteúdo dos cursores ───────────────────────────────────────────────────
+//
+// Extensão não prova formato: um `.ani` truncado ou um RIFF com offset fora do
+// arquivo passariam por qualquer checagem de nome. As funções abaixo leem a
+// estrutura de verdade (diretório do `.cur`, blocos RIFF/`ACON` do `.ani`) e
+// recusam com uma frase que diz o motivo.
+
+const ascii = (bytes, start, end) => bytes.toString('latin1', start, end);
+
+function readU16(bytes, offset, what) {
+  if (offset + 2 > bytes.length) throw `${what} truncado`;
+  return bytes.readUInt16LE(offset);
+}
+
+function readU32(bytes, offset, what) {
+  if (offset + 4 > bytes.length) throw `${what} truncado`;
+  return bytes.readUInt32LE(offset);
+}
+
+function readI32(bytes, offset, what) {
+  if (offset + 4 > bytes.length) throw `${what} truncado`;
+  return bytes.readInt32LE(offset);
+}
+
+function checkDimensions(width, height) {
+  if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+    throw `${width}×${height} passa do máximo ${MAX_DIMENSION}×${MAX_DIMENSION}`;
+  }
+}
+
+/** DIB (BITMAPINFOHEADER) ou PNG: as duas formas de imagem dentro de um `.cur`. */
+function probeImage(bytes) {
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+    if (bytes.length < 8 + 25 + 12) throw 'PNG da imagem truncado';
+    if (ascii(bytes, 12, 16) !== 'IHDR') throw 'PNG sem bloco IHDR';
+    if (readU32(bytes, 8, 'PNG') !== 13) throw 'IHDR com tamanho inválido';
+    const width = readU32(bytes, 16, 'PNG');
+    const height = readU32(bytes, 20, 'PNG');
+    if (!width || !height) throw 'PNG sem dimensões';
+    if (ascii(bytes, bytes.length - 8, bytes.length - 4) !== 'IEND') throw 'PNG sem IEND';
+    return { width, height };
+  }
+
+  if (bytes.length < 40) throw 'imagem menor que o cabeçalho DIB';
+  const headerSize = readU32(bytes, 0, 'DIB');
+  if (headerSize < 40 || headerSize > bytes.length) throw 'cabeçalho DIB com tamanho inválido';
+  const width = readI32(bytes, 4, 'DIB');
+  const storedHeight = readI32(bytes, 8, 'DIB');
+  const planes = readU16(bytes, 12, 'DIB');
+  const bitCount = readU16(bytes, 14, 'DIB');
+  const compression = readU32(bytes, 16, 'DIB');
+
+  if (width <= 0 || storedHeight === 0) throw 'imagem com dimensões inválidas';
+  if (planes !== 1) throw 'imagem com número de planos inválido';
+  if (![1, 4, 8, 16, 24, 32].includes(bitCount)) throw `imagem com ${bitCount} bpp (não suportado)`;
+  if (compression !== 0 && !(compression === 3 && bitCount === 32)) {
+    throw `imagem com compressão ${compression} (não suportada)`;
+  }
+
+  const height = Math.max(1, Math.abs(storedHeight) >> 1);
+  const stride = Math.ceil((width * bitCount) / 32) * 4;
+  if (headerSize + stride * height > bytes.length) throw 'pixels da imagem passam do bloco';
+  return { width, height };
+}
+
+/** Diretório de um `.cur`/`.ico`: cabeçalho, entradas e cada imagem. */
+function probeIconDirectory(bytes) {
+  if (bytes.length < 22) throw 'pequeno demais para um .cur';
+  if (readU16(bytes, 0, '.cur') !== 0) throw 'não é um .cur (reservado != 0)';
+
+  const type = readU16(bytes, 2, '.cur');
+  if (type !== 1 && type !== 2) throw `tipo de imagem desconhecido (${type})`;
+
+  const count = readU16(bytes, 4, '.cur');
+  if (count < 1) throw 'não tem nenhuma imagem';
+  if (count > MAX_ICONS) throw `${count} imagens (máximo ${MAX_ICONS})`;
+
+  const directoryEnd = 6 + count * 16;
+  if (directoryEnd > bytes.length) throw 'diretório de imagens passa do arquivo';
+
+  let width = 0;
+  let height = 0;
+  for (let index = 0; index < count; index += 1) {
+    const entry = 6 + index * 16;
+    const length = readU32(bytes, entry + 8, '.cur');
+    const offset = readU32(bytes, entry + 12, '.cur');
+
+    if (!length) throw `imagem ${index} está vazia`;
+    if (offset < directoryEnd) throw `imagem ${index} se sobrepõe ao diretório`;
+    if (offset + length > bytes.length) throw `imagem ${index} passa do fim do arquivo`;
+
+    const image = probeImage(bytes.subarray(offset, offset + length));
+    width = Math.max(width, image.width);
+    height = Math.max(height, image.height);
+  }
+
+  return { width, height };
+}
+
+/** Valida um cursor pelo **conteúdo** e devolve tamanho e quadros. */
+function probeCursor(bytes, ext) {
+  if (bytes.length === 0) throw 'arquivo vazio';
+  if (bytes.length > MAX_FILE_BYTES) {
+    throw `${KB(bytes.length)} (máximo ${KB(MAX_FILE_BYTES)})`;
+  }
+
+  const riff = bytes.length >= 12 && ascii(bytes, 0, 4) === 'RIFF';
+
+  if (ext === '.cur') {
+    if (riff) throw 'o conteúdo é uma animação (.ani), mas a extensão é .cur';
+    const image = probeIconDirectory(bytes);
+    checkDimensions(image.width, image.height);
+    return { width: image.width, height: image.height, frames: 1 };
+  }
+
+  if (!riff) throw 'o conteúdo não é um RIFF/ACON';
+  if (ascii(bytes, 8, 12) !== 'ACON') throw 'RIFF que não é uma animação de cursor (ACON)';
+
+  const riffEnd = 8 + readU32(bytes, 4, 'RIFF');
+  if (riffEnd > bytes.length) throw 'RIFF declara mais bytes do que o arquivo tem';
+
+  let offset = 12;
+  let chunks = 0;
+  let frames = 0;
+  let declaredFrames = 0;
+  let width = 0;
+  let height = 0;
+  const sequence = [];
+
+  while (offset + 8 <= riffEnd) {
+    if ((chunks += 1) > 4096) throw 'blocos demais para uma animação';
+
+    const id = ascii(bytes, offset, offset + 4);
+    const size = readU32(bytes, offset + 4, 'bloco');
+    const body = offset + 8;
+    const end = body + size;
+    if (end > riffEnd) throw `bloco "${id}" passa do fim do arquivo`;
+
+    if (id === 'anih') {
+      if (size < 36) throw 'cabeçalho anih truncado';
+      if (readU32(bytes, body, 'anih') !== 36) throw 'anih declara tamanho diferente de 36';
+      declaredFrames = readU32(bytes, body + 4, 'anih');
+      if (declaredFrames > MAX_FRAMES) throw `declara ${declaredFrames} quadros (máximo ${MAX_FRAMES})`;
+    } else if (id === 'seq ') {
+      if (size % 4 !== 0) throw 'sequência (seq) com tamanho inválido';
+      for (let index = 0; index < size / 4; index += 1) {
+        sequence.push(readU32(bytes, body + index * 4, 'seq'));
+      }
+    } else if (id === 'LIST' && size >= 4 && ascii(bytes, body, body + 4) === 'fram') {
+      let inner = body + 4;
+      while (inner + 8 <= end) {
+        const iconId = ascii(bytes, inner, inner + 4);
+        const iconSize = readU32(bytes, inner + 4, 'quadro');
+        const iconBody = inner + 8;
+        const iconEnd = iconBody + iconSize;
+        if (iconEnd > end) throw 'quadro passa do fim da lista';
+
+        if (iconId === 'icon') {
+          frames += 1;
+          if (frames > MAX_FRAMES) throw `mais de ${MAX_FRAMES} quadros (máximo ${MAX_FRAMES})`;
+          const image = probeIconDirectory(bytes.subarray(iconBody, iconEnd));
+          width = Math.max(width, image.width);
+          height = Math.max(height, image.height);
+        }
+
+        inner = iconEnd + (iconSize % 2);
+      }
+    }
+
+    offset = end + (size % 2);
+  }
+
+  if (frames === 0) throw 'não tem nenhum quadro (icon)';
+  if (declaredFrames && declaredFrames !== frames) {
+    throw `anih declara ${declaredFrames} quadros, mas a lista tem ${frames}`;
+  }
+  for (const index of sequence) {
+    if (index >= frames) throw `sequência aponta para o quadro ${index}, mas a animação tem ${frames}`;
+  }
+
+  checkDimensions(width, height);
+  return { width, height, frames };
 }
 
 // ── Registry ────────────────────────────────────────────────────────────────
@@ -82,6 +271,18 @@ if (registry) {
       }
       if (listed.has(slug)) fail(where, `slug duplicado: "${slug}"`);
       listed.set(slug, theme);
+
+      if (
+        typeof theme.size !== 'number' ||
+        !Number.isInteger(theme.size) ||
+        theme.size < 1 ||
+        theme.size > MAX_DIMENSION
+      ) {
+        fail(
+          where,
+          `"size" precisa ser inteiro entre 1 e ${MAX_DIMENSION} (é ${JSON.stringify(theme.size)})`
+        );
+      }
 
       if (!Array.isArray(theme.cursors) || theme.cursors.length === 0) {
         fail(where, '"cursors" precisa listar pelo menos um arquivo');
@@ -146,6 +347,19 @@ for (const [slug, entry] of listed) {
     if (meta.name !== entry.name) {
       fail(where, `"name" difere do registry (${JSON.stringify(meta.name)} vs ${JSON.stringify(entry.name)})`);
     }
+    if (
+      typeof meta.size !== 'number' ||
+      !Number.isInteger(meta.size) ||
+      meta.size < 1 ||
+      meta.size > MAX_DIMENSION
+    ) {
+      fail(
+        where,
+        `"size" precisa ser inteiro entre 1 e ${MAX_DIMENSION} (é ${JSON.stringify(meta.size)})`
+      );
+    } else if (meta.size !== entry.size) {
+      fail(where, `"size" difere do registry (${meta.size} vs ${JSON.stringify(entry.size)})`);
+    }
 
     const preview = meta.preview ?? 'preview.png';
     const previewPath = join(dir, preview);
@@ -159,6 +373,7 @@ for (const [slug, entry] of listed) {
   const cursorsDir = join(dir, 'cursors');
   const files = existsSync(cursorsDir) ? readdirSync(cursorsDir) : [];
   let total = 0;
+  let detected = 0;
 
   for (const file of files) {
     const path = join(cursorsDir, file);
@@ -170,24 +385,29 @@ for (const [slug, entry] of listed) {
     }
     if (!CURSOR_EXT.test(file)) continue;
 
-    const size = statSync(path).size;
+    const bytes = readFileSync(path);
+    const size = bytes.length;
     total += size;
     if (size > MAX_FILE_BYTES) {
       fail(where, `cursors/${file} com ${KB(size)} (máximo ${KB(MAX_FILE_BYTES)})`);
     }
-    if (size === 0) fail(where, `cursors/${file} está vazio`);
 
-    // Um .cur/.ani começa com o diretório de ícones: tipo 1 (.cur) ou 2 (.ani).
-    const head = readFileSync(path).subarray(0, 4);
-    const type = head.readUInt16LE(2);
-    const expected = ext === '.ani' ? 2 : 1;
-    if (head.readUInt16LE(0) !== 0 || type !== expected) {
-      fail(where, `cursors/${file} não parece um ${ext} válido`);
+    try {
+      const info = probeCursor(bytes, ext);
+      detected = Math.max(detected, info.width, info.height);
+    } catch (error) {
+      fail(where, `cursors/${file}: ${error}`);
     }
   }
 
   if (total > MAX_THEME_BYTES) {
     fail(where, `tema com ${KB(total)} no total (máximo ${KB(MAX_THEME_BYTES)})`);
+  }
+
+  // O `size` declarado precisa ser o que os arquivos realmente têm — um catálogo
+  // que mente aqui faria o selo do app mentir também.
+  if (meta && typeof meta.size === 'number' && detected > 0 && meta.size !== detected) {
+    fail(where, `"size" ${meta.size} não bate com o maior cursor (${detected}×${detected})`);
   }
 
   // Todo arquivo citado no registry precisa existir na pasta.
@@ -240,7 +460,7 @@ try {
   const block = currentBlock(readme);
   if (block === null) {
     fail('README.md', 'faltam os marcadores THEMES:START / THEMES:END');
-  } else if (registry && block.trim() !== expectedBlock(registry).trim()) {
+  } else if (registry && block.replace(/\r\n/g, '\n').trim() !== expectedBlock(registry).replace(/\r\n/g, '\n').trim()) {
     fail('README.md', 'a tabela de temas está fora de sincronia (rode: node tools/readme.mjs)');
   }
 } catch (error) {

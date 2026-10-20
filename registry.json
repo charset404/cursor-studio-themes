@@ -14,6 +14,7 @@
       "license": "MIT",
       "tags": ["exemplo", "template"],
       "accent": "#7c9cff",
+      "size": 32,
       "preview": "themes/example-aurora/preview.png",
       "cursors": [
         { "file": "cursors/normal.cur", "role": "Arrow" },

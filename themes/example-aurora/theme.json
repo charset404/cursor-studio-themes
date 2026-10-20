@@ -8,6 +8,7 @@
   "tags": ["exemplo", "template"],
   "preview": "preview.png",
   "accent": "#7c9cff",
+  "size": 32,
   "cursors": [
     { "file": "normal.cur", "role": "Arrow" },
     { "file": "link.cur", "role": "Hand" },

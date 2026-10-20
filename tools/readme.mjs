@@ -19,14 +19,15 @@ export function renderTable(registry) {
   const rows = registry.themes.map((theme) => {
     const preview = theme.preview ?? `themes/${theme.slug}/preview.png`;
     const count = theme.cursors?.length ?? 0;
-    return `| **${theme.name}** | ${theme.author} | ${count} | ${theme.license} | [ver](${preview}) |`;
+    const size = Number.isFinite(Number(theme.size)) ? `${theme.size}×${theme.size}` : '—';
+    return `| **${theme.name}** | ${theme.author} | ${count} | ${size} | ${theme.license} | [ver](${preview}) |`;
   });
 
   return [
     START,
     '',
-    '| Tema | Autor | Cursores | Licença | Prévia |',
-    '| :--- | :--- | :---: | :---: | :---: |',
+    '| Tema | Autor | Cursores | Tamanho | Licença | Prévia |',
+    '| :--- | :--- | :---: | :---: | :---: | :---: |',
     ...rows,
     '',
     END
@@ -59,7 +60,10 @@ function main() {
   const expected = expectedBlock(registry);
 
   if (check) {
-    if (block.trim() !== expected.trim()) {
+    // O checkout do Windows pode trocar LF por CRLF; a comparação não pode
+    // depender do fim de linha, só do conteúdo.
+    const normalize = (text) => text.replace(/\r\n/g, '\n');
+    if (normalize(block).trim() !== normalize(expected).trim()) {
       console.error('README.md está fora de sincronia com o registry.json.');
       console.error('Rode: node tools/readme.mjs');
       process.exit(1);
