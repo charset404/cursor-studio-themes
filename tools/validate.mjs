@@ -202,6 +202,38 @@ for (const [slug, entry] of listed) {
 
 // ── README em sincronia com o índice ────────────────────────────────────────
 
+// ── Categorias ──────────────────────────────────────────────────────────────
+
+const categoriesPath = join(ROOT, 'categories.json');
+if (existsSync(categoriesPath)) {
+  let doc = null;
+  try {
+    doc = JSON.parse(readFileSync(categoriesPath, 'utf8'));
+  } catch (error) {
+    fail('categories.json', `JSON invalido (${error.message})`);
+  }
+
+  const ids = new Set();
+  for (const entry of doc?.categories ?? []) {
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(entry.id ?? '')) {
+      fail('categories.json', `id invalido: ${JSON.stringify(entry.id)}`);
+      continue;
+    }
+    if (ids.has(entry.id)) fail('categories.json', `id repetido: ${entry.id}`);
+    ids.add(entry.id);
+    if (!entry.label) fail('categories.json', `categoria ${entry.id} sem label`);
+    if (entry.cover && !existsSync(join(ROOT, entry.cover))) {
+      fail('categories.json', `cover ausente: ${entry.cover}`);
+    }
+  }
+
+  for (const theme of registry?.themes ?? []) {
+    if (theme.category && !ids.has(theme.category)) {
+      fail(`themes/${theme.slug}`, `category "${theme.category}" nao existe em categories.json`);
+    }
+  }
+}
+
 try {
   const { currentBlock, expectedBlock } = await import('./readme.mjs');
   const readme = readFileSync(join(ROOT, 'README.md'), 'utf8');

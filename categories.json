@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    { "id": "minimalistas", "label": "Minimalistas", "accent": "#7c9cff", "cover": "categories/minimalistas.jpg", "description": "Temas limpos, sem ornamento." },
+    { "id": "neon", "label": "Neon", "accent": "#b06bff", "cover": "categories/neon.jpg", "description": "Brilho saturado sobre fundo escuro." },
+    { "id": "gaming", "label": "Gaming", "accent": "#ff5d5d", "cover": "categories/gaming.jpg", "description": "Cursores de mira e reticulas para jogos." },
+    { "id": "anime", "label": "Anime", "accent": "#ff8ac4", "cover": "categories/anime.jpg", "description": "Personagens e icones de animacao japonesa." },
+    { "id": "cyber-futurista", "label": "Cyber / Futurista", "accent": "#35d6ff", "cover": "categories/cyber-futurista.jpg", "description": "Interfaces tecnicas, HUD e ficcao cientifica." },
+    { "id": "naturais", "label": "Naturais", "accent": "#6fbf73", "cover": "categories/naturais.jpg", "description": "Pedra, madeira, folhas e materiais do dia a dia." },
+    { "id": "retro-pixel", "label": "Retro / Pixel", "accent": "#ffb347", "cover": "categories/retro-pixel.jpg", "description": "Estetica de 8 e 16 bits, com pixels visiveis." }
+  ]
+}

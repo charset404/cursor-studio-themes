@@ -50,6 +50,11 @@
       "format": "uri",
       "description": "Optional link to the original theme page."
     },
+    "category": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Id de uma categoria de categories.json. Ausente ou desconhecido cai em Outros."
+    },
     "preview": {
       "type": "string",
       "description": "Path to the preview image, relative to the theme folder.",
