@@ -6,12 +6,18 @@ on:
     paths:
       - 'themes/**'
       - 'registry.json'
+      - 'categories.json'
+      - 'categories/**'
+      - 'themes/schema.json'
       - 'tools/validate.mjs'
       - '.github/workflows/**'
   pull_request:
     paths:
       - 'themes/**'
       - 'registry.json'
+      - 'categories.json'
+      - 'categories/**'
+      - 'themes/schema.json'
       - 'tools/validate.mjs'
       - '.github/workflows/**'
   workflow_dispatch:
