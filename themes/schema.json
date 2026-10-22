@@ -4,7 +4,16 @@
   "title": "Theme metadata",
   "description": "Metadata for one Cursor Studio theme, stored as themes/<slug>/theme.json.",
   "type": "object",
-  "required": ["slug", "name", "author", "description", "version", "license", "size", "cursors"],
+  "required": [
+    "slug",
+    "name",
+    "author",
+    "description",
+    "version",
+    "license",
+    "size",
+    "cursors"
+  ],
   "additionalProperties": false,
   "properties": {
     "slug": {
@@ -42,7 +51,10 @@
     "tags": {
       "type": "array",
       "maxItems": 6,
-      "items": { "type": "string", "maxLength": 20 },
+      "items": {
+        "type": "string",
+        "maxLength": 20
+      },
       "description": "Free-form tags used for filtering and search."
     },
     "homepage": {
@@ -77,7 +89,10 @@
       "description": "Every cursor file the theme provides.",
       "items": {
         "type": "object",
-        "required": ["file", "role"],
+        "required": [
+          "file",
+          "role"
+        ],
         "additionalProperties": false,
         "properties": {
           "file": {
@@ -107,6 +122,30 @@
               "Person"
             ],
             "description": "Windows cursor role this file fills."
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "description": "Vínculos opcionais cursor ↔ efeito. Basta um lado declarar; o app só oferece instalar.",
+      "items": {
+        "type": "object",
+        "required": [
+          "slug"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "relation": {
+            "enum": [
+              "requires",
+              "recommends"
+            ],
+            "default": "recommends"
           }
         }
       }

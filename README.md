@@ -41,6 +41,24 @@ flowchart LR
 | `themes/<slug>/preview.png` | pasta do tema | Imagem do cartão na comunidade |
 | `themes/<slug>/cursors/` | pasta do tema | Os arquivos `.ani` / `.cur` |
 | `themes/schema.json` | `themes/` | Contrato que a validação aplica |
+| `effects/<slug>/effect.json` | pasta do efeito | Metadados de um **efeito de clique** |
+| `effects/<slug>/effect.bgra` | pasta do efeito | A animação (um arquivo, quadros BGRA quadrados) |
+| `effects/<slug>/preview.png` | pasta do efeito | Imagem do cartão |
+| `effects/schema.json` | `effects/` | Contrato dos efeitos |
+
+### Temas de cursor e temas de efeitos
+
+O catálogo tem **dois tipos** de item, identificados por `kind` no `registry.json`
+(o app mostra o selo **Efeitos** e permite filtrar por tipo):
+
+- `cursor` (padrão) — uma pasta em `themes/<slug>/` com os cursores.
+- `effect` — uma pasta em `effects/<slug>/` com **um** `effect.bgra`: a animação
+  que toca quando o botão do mouse é clicado.
+
+Os dois podem se **vincular** (`links`, opcional): um cursor pode recomendar (ou
+exigir) um efeito e vice-versa. Basta um lado declarar. Ao instalar um item, o app
+**oferece** instalar o que falta — nunca instala sozinho. Detalhes em
+[docs/FORMATO.md](docs/FORMATO.md#efeitos).
 
 > [!IMPORTANT]
 > Um tema **não** é um arquivo compactado. É uma pasta com cursores e um
@@ -77,7 +95,7 @@ arquivos. A classificação mostrada pelo app depende do destino: **128×128 é
 
 ### Manualmente
 
-1. Entre na pasta `themes/<slug>/cursors/` do tema.
+1. Entre na pasta `themes/<slug>/cursors/` do tema (efeitos ficam em `effects/<slug>/`).
 2. Baixe os arquivos `.ani` e `.cur`.
 3. No Cursor Studio, vá em **Biblioteca → Novo tema → Selecionar pasta…**
 4. Aponte para a pasta onde salvou os arquivos e dê um nome ao tema.
@@ -92,13 +110,14 @@ e o Cursor Studio passa a listá-los na Biblioteca.
 <!-- A tabela é gerada pelo workflow: não edite à mão. -->
 <!-- THEMES:START -->
 
-| Tema | Autor | Cursores | Tamanho | Licença | Prévia |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **Aurora** | Cursor Studio | 3 | 32×32 | MIT | [ver](themes/example-aurora/preview.png) |
+| Item | Tipo | Autor | Cursores / quadros | Tamanho | Licença | Prévia |
+| :--- | :---: | :--- | :---: | :---: | :---: | :---: |
+| **Aurora** | Cursor | Cursor Studio | 3 | 32×32 | MIT | [ver](themes/example-aurora/preview.png) |
+| **Aurora Click** | Efeito | Cursor Studio | 24 quadros | 128×128 | MIT | [ver](effects/example-aurora-click/preview.png) |
 
 <!-- THEMES:END -->
 
-<p align="center"><sub>O tema <strong>Aurora</strong> é o exemplo oficial do formato — sirva-se dele como ponto de partida.</sub></p>
+<p align="center"><sub><strong>Aurora</strong> (cursor) e <strong>Aurora Click</strong> (efeito) são os exemplos oficiais do formato — sirva-se deles como ponto de partida.</sub></p>
 
 ---
 
@@ -120,6 +139,9 @@ cp -r themes/example-aurora themes/meu-tema
 node tools/validate.mjs
 
 # 5. Adicione o tema ao registry.json e abra o Pull Request
+
+# Efeito de clique? Copie effects/example-aurora-click para effects/meu-efeito
+# (python tools/make-example-effect.py mostra como gerar o .bgra)
 ```
 
 O guia completo — nomenclatura de arquivos, papéis do Windows, checklist de

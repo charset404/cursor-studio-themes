@@ -125,6 +125,18 @@ então **PR que passa na validação está com o formato garantido**.
 Título no formato `tema: Nome do Tema`. Preencha o checklist do template — ele
 lista exatamente o que a revisão vai olhar.
 
+## Publicar um efeito de clique
+
+1. Copie `effects/example-aurora-click` para `effects/<seu-slug>/`.
+2. Gere o `effect.bgra` (veja `tools/make-example-effect.py`): quadros quadrados
+   BGRA pré-multiplicados, até 128 px, de 8 a 60 quadros, até 4 MB.
+3. Ajuste `effect.json` e `preview.png` (640×360, até 300 KB).
+4. Adicione o item ao `registry.json` com `"kind": "effect"` (copie o exemplo —
+   `effect`, `size` e `version` precisam bater com o `effect.json`).
+5. Se combina com um tema de cursor, declare `links` (opcional) e rode
+   `node tools/readme.mjs` para atualizar a tabela do README.
+6. `node tools/validate.mjs` precisa passar. Abra o Pull Request.
+
 ## Checklist de revisão
 
 - [ ] `node tools/validate.mjs` passa

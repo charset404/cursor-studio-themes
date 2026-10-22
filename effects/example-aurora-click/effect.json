@@ -1,0 +1,26 @@
+{
+  "slug": "example-aurora-click",
+  "name": "Aurora Click",
+  "author": "Cursor Studio",
+  "description": "Efeito de exemplo: um anel que se abre no clique. Documenta o formato de efeitos.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "tags": [
+    "exemplo",
+    "template"
+  ],
+  "preview": "preview.png",
+  "accent": "#7c9cff",
+  "effect": {
+    "file": "effect.bgra",
+    "frames": 24,
+    "width": 128,
+    "height": 128
+  },
+  "links": [
+    {
+      "slug": "example-aurora",
+      "relation": "recommends"
+    }
+  ]
+}

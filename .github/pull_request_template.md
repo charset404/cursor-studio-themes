@@ -5,6 +5,7 @@
 ## Tipo
 
 - [ ] Tema novo
+- [ ] Efeito de clique novo
 - [ ] Atualização de tema existente
 - [ ] Correção de formato/validação
 - [ ] Documentação
@@ -23,3 +24,6 @@
 ## Prévia
 
 <!-- Cole aqui a imagem do preview.png, para a revisão ver sem baixar. -->
+
+Para **efeitos**: o `.bgra` tem `frames × lado × lado × 4` bytes (quadro quadrado ≤ 128 px,
+8–60 quadros, ≤ 4 MB), e `effect.json` e `registry.json` dizem o mesmo.

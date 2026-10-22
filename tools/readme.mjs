@@ -17,17 +17,18 @@ const END = '<!-- THEMES:END -->';
 
 export function renderTable(registry) {
   const rows = registry.themes.map((theme) => {
-    const preview = theme.preview ?? `themes/${theme.slug}/preview.png`;
-    const count = theme.cursors?.length ?? 0;
+    const effect = /^effects?$/i.test(String(theme.kind ?? ''));
+    const preview = theme.preview ?? `${effect ? 'effects' : 'themes'}/${theme.slug}/preview.png`;
+    const count = effect ? `${theme.effect?.frames ?? '—'} quadros` : (theme.cursors?.length ?? 0);
     const size = Number.isFinite(Number(theme.size)) ? `${theme.size}×${theme.size}` : '—';
-    return `| **${theme.name}** | ${theme.author} | ${count} | ${size} | ${theme.license} | [ver](${preview}) |`;
+    return `| **${theme.name}** | ${effect ? 'Efeito' : 'Cursor'} | ${theme.author} | ${count} | ${size} | ${theme.license} | [ver](${preview}) |`;
   });
 
   return [
     START,
     '',
-    '| Tema | Autor | Cursores | Tamanho | Licença | Prévia |',
-    '| :--- | :--- | :---: | :---: | :---: | :---: |',
+    '| Item | Tipo | Autor | Cursores / quadros | Tamanho | Licença | Prévia |',
+    '| :--- | :---: | :--- | :---: | :---: | :---: | :---: |',
     ...rows,
     '',
     END

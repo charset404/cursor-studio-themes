@@ -1,0 +1,30 @@
+---
+name: Proposta de efeito de clique
+about: Publique um efeito (.bgra) na Biblioteca Online
+title: 'efeito: Nome do Efeito'
+labels: efeito
+---
+
+## Efeito
+
+- **Nome:**
+- **Autor (GitHub):**
+- **Licença:**
+- **Slug** (minúsculas, hífen):
+
+## Descrição
+
+<!-- Uma ou duas frases. Aparece no card do app. -->
+
+## Arquivo
+
+- Lado do quadro (px, até 128):
+- Quadros (8 a 60):
+- Combina com algum tema de cursor? (slug e `recommends`/`requires`):
+
+## Checklist
+
+- [ ] `node tools/validate.mjs` passa
+- [ ] `effect.bgra` com alpha pré-multiplicado e até 4 MB
+- [ ] Preview em 640×360
+- [ ] Item adicionado ao `registry.json` com `"kind": "effect"`

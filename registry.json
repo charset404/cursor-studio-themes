@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "updatedAt": "2026-10-12T00:00:00Z",
+  "schemaVersion": 2,
+  "updatedAt": "2026-10-22T00:00:00Z",
   "repository": "charset404/cursor-studio-themes",
   "branch": "main",
   "rawBase": "https://raw.githubusercontent.com/charset404/cursor-studio-themes/main",
@@ -12,14 +12,60 @@
       "description": "Tema de exemplo que documenta o formato esperado. Copie esta pasta para criar um tema novo.",
       "version": "1.0.0",
       "license": "MIT",
-      "tags": ["exemplo", "template"],
+      "tags": [
+        "exemplo",
+        "template"
+      ],
       "accent": "#7c9cff",
       "size": 32,
       "preview": "themes/example-aurora/preview.png",
       "cursors": [
-        { "file": "cursors/normal.cur", "role": "Arrow" },
-        { "file": "cursors/link.cur", "role": "Hand" },
-        { "file": "cursors/busy.cur", "role": "Wait" }
+        {
+          "file": "cursors/normal.cur",
+          "role": "Arrow"
+        },
+        {
+          "file": "cursors/link.cur",
+          "role": "Hand"
+        },
+        {
+          "file": "cursors/busy.cur",
+          "role": "Wait"
+        }
+      ],
+      "links": [
+        {
+          "slug": "example-aurora-click",
+          "relation": "recommends"
+        }
+      ]
+    },
+    {
+      "kind": "effect",
+      "slug": "example-aurora-click",
+      "name": "Aurora Click",
+      "author": "Cursor Studio",
+      "description": "Efeito de exemplo: um anel que se abre no clique. Documenta o formato de efeitos.",
+      "version": "1.0.0",
+      "license": "MIT",
+      "tags": [
+        "exemplo",
+        "template"
+      ],
+      "accent": "#7c9cff",
+      "size": 128,
+      "preview": "effects/example-aurora-click/preview.png",
+      "effect": {
+        "file": "effect.bgra",
+        "frames": 24,
+        "width": 128,
+        "height": 128
+      },
+      "links": [
+        {
+          "slug": "example-aurora",
+          "relation": "recommends"
+        }
       ]
     }
   ]

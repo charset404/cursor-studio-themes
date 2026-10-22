@@ -53,6 +53,59 @@ O contrato completo está em [`schema.json`](../themes/schema.json). O mínimo:
 | `preview` | `preview.png`, 640×360, até 300 KB. |
 | `cursors` | Pelo menos 1 par `file` + `role`, com `file` terminando em `.ani` ou `.cur`. |
 
+## Efeitos
+
+Um efeito de clique é uma **pasta** em `effects/<slug>/`:
+
+```
+effects/
+└── meu-efeito/
+    ├── effect.json     ← metadados (obrigatório)
+    ├── preview.png     ← imagem do cartão (obrigatório)
+    └── effect.bgra     ← a animação (obrigatório, UM arquivo)
+```
+
+### O arquivo `.bgra`
+
+Quadros **quadrados** de 32 bits **BGRA com alpha pré-multiplicado**, um depois do
+outro, sem cabeçalho. O arquivo precisa ter exatamente
+`frames × lado × lado × 4` bytes. `tools/make-example-effect.py` é a referência
+executável do formato.
+
+| Regra | Limite |
+| :--- | :--- |
+| Lado do quadro | até 128 px, `width == height` |
+| Quadros | de 8 a 60 |
+| Tamanho do arquivo | até 4 MB |
+| Extensões na pasta | só `.bgra`, `.json`, `.png` |
+
+### effect.json
+
+Mesmos campos de um `theme.json` (`slug`, `name`, `author`, `description`,
+`version`, `license`, `tags`, `accent`, `category`, `preview`, `links`), sem
+`cursors` e `size`, mais:
+
+```json
+"effect": { "file": "effect.bgra", "frames": 24, "width": 128, "height": 128 }
+```
+
+No `registry.json` o item leva `"kind": "effect"`, o mesmo bloco `effect`,
+`"size"` igual ao lado do quadro e `"preview": "effects/<slug>/preview.png"`. O
+validador confere que `effect.json` e registry dizem o mesmo e que o arquivo fecha
+com os números declarados.
+
+### Vínculos (`links`)
+
+```json
+"links": [{ "slug": "example-aurora-click", "relation": "recommends" }]
+```
+
+- `relation`: `recommends` (padrão) ou `requires`. Nos dois casos o app só **oferece**
+  a instalação.
+- Vale entre **tipos diferentes** (cursor ↔ efeito) e para slugs que existem.
+- Basta **um** dos lados declarar; o app mostra "Combina com" nos dois.
+- Aceita também a forma curta (`"links": ["slug"]`) e o nome antigo `related`.
+
 ## Tamanho e classificação
 
 `size` é o **maior lado do maior cursor**, em pixels. O app usa esse número para

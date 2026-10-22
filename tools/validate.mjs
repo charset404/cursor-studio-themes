@@ -20,6 +20,7 @@ const ROLES = new Set([
   'Pin', 'Person'
 ]);
 
+const LINK_RELATIONS = new Set(['requires', 'recommends']);
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
 const ACCENT = /^#[0-9a-fA-F]{6}$/;
@@ -32,9 +33,20 @@ const MAX_PREVIEW_BYTES = 300 * 1024;
 const MAX_DIMENSION = 128;
 const MAX_FRAMES = 60;
 const MAX_ICONS = 64;
+/** Mesmos tetos do app para efeitos: 1 arquivo .bgra, quadros quadrados. */
+const MAX_EFFECT_EDGE = 128;
 
 /** Extensões que podem existir dentro de uma pasta de tema. */
 const ALLOWED_EXT = new Set(['.ani', '.cur', '.json', '.png']);
+/** E dentro de uma pasta de efeito. */
+const EFFECT_EXT = new Set(['.bgra', '.json', '.png']);
+
+/** `effect`/`effects` valem como efeito; todo o resto é cursor (a mesma regra do app). */
+const kindOf = (item) => (/^effects?$/i.test(String(item?.kind ?? '')) ? 'effect' : 'cursor');
+const linksOf = (item) =>
+  [...(item?.links ?? []), ...(item?.related ?? [])].map((link) =>
+    typeof link === 'string' ? { slug: link } : link
+  );
 
 const KB = (bytes) => `${Math.round(bytes / 1024)} KB`;
 
@@ -244,14 +256,91 @@ function probeCursor(bytes, ext) {
   return { width, height, frames };
 }
 
+// ── Efeitos ─────────────────────────────────────────────────────────────────
+//
+// Um efeito é UM arquivo .bgra (quadros BGRA pré-multiplicados, quadrados, sem
+// cabeçalho) em effects/<slug>/. O tamanho do arquivo precisa fechar exatamente
+// com frames × lado × lado × 4: é a única "estrutura" que o formato tem.
+
+function checkEffect(slug, entry) {
+  const where = `effects/${slug}`;
+  const dir = join(ROOT, 'effects', slug);
+
+  if (!existsSync(dir)) {
+    fail(where, 'pasta do efeito não existe');
+    return;
+  }
+
+  const meta = readJson(join(dir, 'effect.json'), where);
+  if (meta) {
+    if (meta.slug !== slug) fail(where, `"slug" do effect.json (${JSON.stringify(meta.slug)}) difere do registry`);
+    checkString(meta.name, where, 'name', { min: 2, max: 48 });
+    checkString(meta.author, where, 'author', { min: 2, max: 64 });
+    const description = checkString(meta.description, where, 'description', { min: 10, max: 200 });
+    if (typeof description === 'string' && /[\r\n]/.test(description)) {
+      fail(where, '"description" não pode ter quebra de linha');
+    }
+    if (!VERSION.test(String(meta.version))) {
+      fail(where, `"version" inválida: ${JSON.stringify(meta.version)} (use MAIOR.MENOR.CORREÇÃO)`);
+    }
+    if (meta.accent !== undefined && !ACCENT.test(String(meta.accent))) {
+      fail(where, `"accent" inválida: ${JSON.stringify(meta.accent)} (use #rrggbb)`);
+    }
+    if (meta.name !== entry.name) {
+      fail(where, `"name" difere do registry (${JSON.stringify(meta.name)} vs ${JSON.stringify(entry.name)})`);
+    }
+    if (meta.version !== entry.version) {
+      fail(where, `"version" difere do registry (${JSON.stringify(meta.version)} vs ${JSON.stringify(entry.version)})`);
+    }
+    for (const key of ['file', 'frames', 'width', 'height']) {
+      if (meta.effect?.[key] !== entry.effect?.[key]) {
+        fail(where, `"effect.${key}" difere do registry (${JSON.stringify(meta.effect?.[key])} vs ${JSON.stringify(entry.effect?.[key])})`);
+      }
+    }
+
+    const preview = meta.preview ?? 'preview.png';
+    const previewPath = join(dir, preview);
+    if (!existsSync(previewPath)) fail(where, `preview ausente: ${preview}`);
+    else if (statSync(previewPath).size > MAX_PREVIEW_BYTES) {
+      fail(where, `preview com ${KB(statSync(previewPath).size)} (máximo ${KB(MAX_PREVIEW_BYTES)})`);
+    }
+  }
+
+  for (const file of readdirSync(dir)) {
+    if (!EFFECT_EXT.has(extname(file).toLowerCase())) {
+      fail(where, `arquivo não permitido: ${file} (só .bgra, .json, .png)`);
+    }
+  }
+
+  const file = String(entry.effect?.file ?? '');
+  const path = join(dir, file);
+  if (!file || file.includes('/') || file.includes('\\')) {
+    fail(where, '"effect.file" precisa ser só o nome do arquivo, dentro da pasta do efeito');
+    return;
+  }
+  if (!existsSync(path)) {
+    fail(where, `arquivo do efeito ausente: ${file}`);
+    return;
+  }
+
+  const bytes = statSync(path).size;
+  if (bytes > MAX_FILE_BYTES) fail(where, `${file} com ${KB(bytes)} (máximo ${KB(MAX_FILE_BYTES)})`);
+  const frameBytes = (entry.effect?.width ?? 0) * (entry.effect?.height ?? 0) * 4;
+  if (!frameBytes || bytes % frameBytes !== 0) {
+    fail(where, `${file} (${bytes} bytes) não fecha com quadros de ${entry.effect?.width}×${entry.effect?.height} BGRA`);
+  } else if (bytes / frameBytes !== entry.effect?.frames) {
+    fail(where, `"effect.frames" é ${entry.effect?.frames}, mas o arquivo tem ${bytes / frameBytes} quadros`);
+  }
+}
+
 // ── Registry ────────────────────────────────────────────────────────────────
 
 const registry = readJson(join(ROOT, 'registry.json'), 'registry.json');
 const listed = new Map();
 
 if (registry) {
-  if (registry.schemaVersion !== 1) {
-    fail('registry.json', `"schemaVersion" deve ser 1 (é ${JSON.stringify(registry.schemaVersion)})`);
+  if (![1, 2].includes(registry.schemaVersion)) {
+    fail('registry.json', `"schemaVersion" deve ser 1 ou 2 (é ${JSON.stringify(registry.schemaVersion)})`);
   }
   for (const field of ['repository', 'branch', 'rawBase']) {
     checkString(registry[field], 'registry.json', field);
@@ -271,6 +360,21 @@ if (registry) {
       }
       if (listed.has(slug)) fail(where, `slug duplicado: "${slug}"`);
       listed.set(slug, theme);
+
+      if (kindOf(theme) === 'effect') {
+        const edge = theme.effect?.width;
+        if (!theme.effect || typeof theme.effect.file !== 'string' || !/\.bgra$/i.test(theme.effect.file)) {
+          fail(where, '"effect.file" precisa apontar para um arquivo .bgra');
+        }
+        if (!Number.isInteger(edge) || edge < 1 || edge > MAX_EFFECT_EDGE || theme.effect?.height !== edge) {
+          fail(where, `"effect.width"/"effect.height" precisam ser iguais, entre 1 e ${MAX_EFFECT_EDGE}`);
+        }
+        if (!Number.isInteger(theme.effect?.frames) || theme.effect.frames < 8 || theme.effect.frames > MAX_FRAMES) {
+          fail(where, `"effect.frames" precisa estar entre 8 e ${MAX_FRAMES}`);
+        }
+        if (theme.size !== edge) fail(where, `"size" (${JSON.stringify(theme.size)}) precisa ser o lado do quadro (${edge})`);
+        continue;
+      }
 
       if (
         typeof theme.size !== 'number' ||
@@ -303,17 +407,29 @@ if (registry) {
 // ── Cada tema ───────────────────────────────────────────────────────────────
 
 const themesRoot = join(ROOT, 'themes');
-const folders = existsSync(themesRoot)
-  ? readdirSync(themesRoot).filter((name) => statSync(join(themesRoot, name)).isDirectory())
-  : [];
+const effectsRoot = join(ROOT, 'effects');
+const subfolders = (root) =>
+  existsSync(root) ? readdirSync(root).filter((name) => statSync(join(root, name)).isDirectory()) : [];
+const folders = subfolders(themesRoot);
+const effectFolders = subfolders(effectsRoot);
 
 for (const folder of folders) {
-  if (!listed.has(folder)) {
-    fail(`themes/${folder}`, 'pasta não está listada no registry.json');
+  if (!listed.has(folder) || kindOf(listed.get(folder)) !== 'cursor') {
+    fail(`themes/${folder}`, 'pasta não está listada no registry.json como tema de cursor');
+  }
+}
+for (const folder of effectFolders) {
+  if (!listed.has(folder) || kindOf(listed.get(folder)) !== 'effect') {
+    fail(`effects/${folder}`, 'pasta não está listada no registry.json como efeito (kind "effect")');
   }
 }
 
 for (const [slug, entry] of listed) {
+  if (kindOf(entry) === 'effect') {
+    checkEffect(slug, entry);
+    continue;
+  }
+
   const where = `themes/${slug}`;
   const dir = join(themesRoot, slug);
 
@@ -454,6 +570,29 @@ if (existsSync(categoriesPath)) {
   }
 }
 
+// ── Vínculos cursor ↔ efeito ────────────────────────────────────────────────
+//
+// Opcionais, e basta um lado declarar. Só valem entre tipos diferentes e entre
+// itens que existem; o app apenas OFERECE instalar o que falta.
+
+for (const [slug, item] of listed) {
+  const where = `registry.json → ${slug}`;
+  for (const link of linksOf(item)) {
+    if (!link?.slug) {
+      fail(where, 'vínculo sem slug');
+    } else if (link.slug === slug) {
+      fail(where, 'vínculo para si mesmo');
+    } else if (!listed.has(link.slug)) {
+      fail(where, `vínculo aponta para "${link.slug}", que não existe no catálogo`);
+    } else if (kindOf(listed.get(link.slug)) === kindOf(item)) {
+      fail(where, `vínculo com "${link.slug}" é do mesmo tipo (só cursor ↔ efeito)`);
+    }
+    if (link?.relation !== undefined && !LINK_RELATIONS.has(link.relation)) {
+      fail(where, `"relation" inválida: ${JSON.stringify(link.relation)} (use requires ou recommends)`);
+    }
+  }
+}
+
 try {
   const { currentBlock, expectedBlock } = await import('./readme.mjs');
   const readme = readFileSync(join(ROOT, 'README.md'), 'utf8');
@@ -476,4 +615,6 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`✓ ${listed.size} tema(s) válido(s), ${folders.length} pasta(s) conferida(s).`);
+console.log(
+  `✓ ${listed.size} item(ns) válido(s): ${folders.length} tema(s) de cursor, ${effectFolders.length} efeito(s).`
+);
